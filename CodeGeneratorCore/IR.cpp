@@ -206,7 +206,7 @@ void IR::compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<
 	}
 }
 
-inline void IR::collectVars(Term* t, std::vector<std::pair<Term*, std::unique_ptr<Term>>>& variables)
+inline void IR::collectVars(Term* t, std::vector<std::unique_ptr<Term>>& variables)
 {
 	if (t->label.find("var") != std::string::npos)
 	{
@@ -214,7 +214,24 @@ inline void IR::collectVars(Term* t, std::vector<std::pair<Term*, std::unique_pt
 	}
 	if (t->children.empty())
 	{
-		//auto s = getSymbol(t->label);
+		auto s = getSymbol(t->label);
+		if (!s)
+		{
+			return;
+		}
+
+		switch (s->type) {
+		case SymbolType::Inport:
+		case SymbolType::Outport:
+			ports.insert(t);
+			break;
+		case SymbolType::Delay:
+			delays.insert(t);
+			break;
+		default:
+			break;
+		}
+
 		return;
 	}
 	for (auto ch : t->children)
@@ -242,7 +259,7 @@ inline void IR::collectVars(Term* t, std::vector<std::pair<Term*, std::unique_pt
 		s.type = SymbolType::LocalVar;
 		helpers::printTerm(t, s.val);
 		symbols[var->label] = s;
-		variables.push_back({ t, std::move(var) });
+		variables.push_back(std::move(var));
 	}
 }
 
