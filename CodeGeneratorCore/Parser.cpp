@@ -242,14 +242,20 @@ void Parser::splitDelays(std::map<std::string, std::unique_ptr<Block>>& blocks)
             auto& new_block = new_blocks.emplace_back(std::make_unique<Block>());
             new_block->meta = bl.second->meta;
             new_block->name = bl.second->name;
-            new_block->sid = bl.second->sid + "out";
-            new_block->type = bl.second->type;
+            new_block->sid = bl.second->sid + "in";
+            new_block->type = "UnitDelayIn";
             for(auto& dep : bl.second->outdeps)
             {
                 dep.block->indeps[dep.port].block = new_block.get();
             }
             new_block->outdeps = std::move(bl.second->outdeps);
             bl.second->outdeps.clear();
+            bl.second->type = "UnitDelayOut";
         }
+    }
+    for (auto& bl : new_blocks)
+    {
+        auto str = bl->sid;
+        blocks.emplace(str, std::move(bl));
     }
 }

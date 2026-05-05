@@ -9,6 +9,9 @@ add_executable (CodeGeneratorCore
 	Parser.h
 	Parser.cpp
 	Structs.h
+	IR.h
+	IR.cpp
+	Helpers.h
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
