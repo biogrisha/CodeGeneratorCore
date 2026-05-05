@@ -36,6 +36,9 @@ void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 		unfoldOutport(last);
 	}
 	ir += ')';
+	TermParser pr(ir);
+	pr.parse();
+	compact(pr.getResult(), 0, egraph);
 }
 
 void IR::parse(Block* block)
@@ -126,4 +129,104 @@ void IR::unfoldOutport(Block* block)
 		parse(dep.second.block);
 	}
 	ir += ')';
+}
+
+void IR::deleteRecursive(Term* term)
+{
+	for (auto ch : term->children)
+	{
+		deleteRecursive(ch);
+	}
+	delete term;
+}
+
+void IR::compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge)
+{
+	auto found_term = terms_map.find(term->term_str);
+	if (found_term == terms_map.end())
+	{
+		//in this case this means that this term and its parents are not in terms_map
+		//therefor we just put it into map without changing its parents
+		term->pending_cong = !before_merge;
+		terms_map.emplace(term->term_str, std::unique_ptr<Term>(term));
+	}
+	else
+	{
+		//term already in map, this means, that it and its children are in terms_map
+		//its parent still added into terms_map only once
+		//but two identical terms could have same parent e.g. f(a,a)
+		// so we need to add parent uniquely here
+		// update this element in parent with found term
+		//->delete this term recursively
+		if (!term->parents.empty())
+		{
+			found_term->second->parents.insert(*term->parents.begin());
+			(*term->parents.begin())->children[term_id] = found_term->second.get();
+		}
+
+		deleteRecursive(term);
+		return;
+	}
+	int i = 0;
+	for (auto ch : term->children)
+	{
+		compact(ch, i, terms_map, before_merge);
+		++i;
+	}
+}
+
+void TermParser::parse()
+{
+	while (m_pos != m_str.size())
+	{
+		int term_start = m_pos;
+		consumeTermName();
+		int label_end = m_pos;
+		auto t = new Term();
+		t->e_reps.push_back(t);
+		t->e_rep = t;
+		m_current_term = t;
+		if (m_parent_term)
+		{
+			m_current_term->parents.insert(m_parent_term);
+			m_parent_term->children.push_back(m_current_term);
+		}
+		if (m_pos > m_str.size())
+		{
+			return;
+		}
+		if (m_str[m_pos] == '(')
+		{
+			++m_pos;
+			m_parent_term = m_current_term;
+			parse();
+			m_current_term = m_parent_term;
+			m_parent_term = !m_current_term->parents.empty() ? *m_current_term->parents.begin() : nullptr;
+		}
+		m_current_term->label = m_str.substr(term_start, label_end - term_start);
+		m_current_term->term_str = m_str.substr(term_start, m_pos - term_start);
+		if (m_pos >= m_str.size())
+		{
+			return;
+		}
+		if (m_str[m_pos] == ')')
+		{
+			++m_pos;
+			return;
+		}
+		++m_pos;
+	}
+}
+
+void TermParser::consumeTermName()
+{
+	int i = m_pos;
+	for (; i < m_str.size(); ++i)
+	{
+		if (m_str[i] == '(' || m_str[i] == ')' || m_str[i] == ',')
+		{
+			break;
+		}
+	}
+	m_pos = i;
 }

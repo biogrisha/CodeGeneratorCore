@@ -4,14 +4,14 @@
 
 # Add source to this project's executable.
 add_executable (CodeGeneratorCore 
-	CodeGeneratorCore.cpp 
-	CodeGeneratorCore.h
+	main.cpp
 	Parser.h
 	Parser.cpp
 	Structs.h
 	IR.h
 	IR.cpp
 	Helpers.h
+	CodeGenerator.h
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

@@ -32,3 +32,11 @@ struct Term
     std::unordered_set<int> ids_passed;
     bool pending_cong = false;
 };
+
+struct Identity
+{
+    std::string lhs;
+    std::string rhs;
+    Term* t_lhs = nullptr;
+    Term* t_rhs = nullptr;
+};
