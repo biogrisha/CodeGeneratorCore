@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <charconv>
+#include "Helpers.h"
 
 std::optional<std::map<std::string, std::unique_ptr<Block>>> Parser::parse(const std::string& file_path)
 {
@@ -34,7 +35,7 @@ std::optional<std::map<std::string, std::unique_ptr<Block>>> Parser::parse(const
         {
             std::unique_ptr<Block> block = std::make_unique<Block>();
             block->type = get_attr(block_node, "BlockType");
-            block->name = get_attr(block_node, "Name");
+            block->name = helpers::removeWhitespace(get_attr(block_node, "Name"));
             block->sid = get_attr(block_node, "SID");
             if (block->type == "Sum")
             {

@@ -33,6 +33,20 @@ struct Term
     bool pending_cong = false;
 };
 
+enum class SymbolType
+{
+    Inport,
+    Outport,
+    Delay,
+    LocalVar,
+    None
+};
+struct Symbol
+{
+    SymbolType type = SymbolType::None;
+    std::string val;
+};
+
 struct Identity
 {
     std::string lhs;

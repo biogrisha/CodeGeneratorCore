@@ -12,6 +12,7 @@ add_executable (CodeGeneratorCore
 	IR.cpp
 	Helpers.h
 	CodeGenerator.h
+	CodeGenerator.cpp
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

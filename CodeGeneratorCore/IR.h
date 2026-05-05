@@ -25,15 +25,28 @@ class IR
 {
 public:
 	void init(const std::map<std::string, std::unique_ptr<Block>>& blocks);
+    Symbol* getSymbol(const std::string& name);
+    std::map<std::string, std::unique_ptr<Term>>& getEGraph() { return egraph;}
+    Term* getMainTerm() { return main_t; }
 private:
 	void parse(Block* block);
 	void unfoldGain(Block* block);
 	void unfoldSum(Block* block, int i);
 	void unfoldDelay(Block* block);
 	void unfoldOutport(Block* block);
+    void unfoldInport(Block* block);
     void deleteRecursive(Term* term);
     void compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge = true);
+	void collectVars(Term* t, std::vector<std::pair<Term*, std::unique_ptr<Term>>>& variables);
 
 	std::map<std::string, std::unique_ptr<Term>> egraph;
+
+    std::map<std::string, Symbol> symbols;
+
+    std::vector<std::pair<Term*, std::unique_ptr<Term>>> local_variables;
+    std::unordered_set<Term*> ports;
+    std::unordered_set<Term*> delays;
+
 	std::string ir;
+    Term* main_t = nullptr;
 };

@@ -1,5 +1,6 @@
 ﻿#include "Parser.h"
 #include "IR.h"
+#include "CodeGenerator.h"
 #include <iostream>
 int main()
 {
@@ -8,5 +9,8 @@ int main()
 
     IR ir;
     ir.init(*res);
+
+    CodeGenerator cg;
+    cg.generate(ir);
     return 0;
 }

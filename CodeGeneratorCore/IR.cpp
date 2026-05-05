@@ -38,7 +38,19 @@ void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 	ir += ')';
 	TermParser pr(ir);
 	pr.parse();
-	compact(pr.getResult(), 0, egraph);
+	main_t = pr.getResult();
+	compact(main_t, 0, egraph);
+	collectVars(main_t, local_variables);
+}
+
+Symbol* IR::getSymbol(const std::string& name)
+{
+	auto found = symbols.find(name);
+	if (found == symbols.end())
+	{
+		return nullptr;
+	}
+	return &found->second;
 }
 
 void IR::parse(Block* block)
@@ -50,6 +62,10 @@ void IR::parse(Block* block)
 	else if (block->type == "Sum")
 	{
 		unfoldSum(block,0);
+	}
+	else if (block->type == "Inport")
+	{
+		unfoldInport(block);
 	}
 	else
 	{
@@ -119,6 +135,10 @@ void IR::unfoldDelay(Block* block)
 	auto meta = helpers::split(block->meta);
 	ir += ',' + meta.back();
 	ir += ')';
+	Symbol s;
+	s.type = SymbolType::Delay;
+	s.val = meta.front();
+	symbols[block->name] = s;
 }
 
 void IR::unfoldOutport(Block* block)
@@ -129,6 +149,17 @@ void IR::unfoldOutport(Block* block)
 		parse(dep.second.block);
 	}
 	ir += ')';
+	Symbol s;
+	s.type = SymbolType::Outport;
+	symbols[block->name] = s;
+}
+
+void IR::unfoldInport(Block* block)
+{
+	ir += block->name;
+	Symbol s;
+	s.type = SymbolType::Inport;
+	symbols[block->name] = s;
 }
 
 void IR::deleteRecursive(Term* term)
@@ -172,6 +203,46 @@ void IR::compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<
 	{
 		compact(ch, i, terms_map, before_merge);
 		++i;
+	}
+}
+
+inline void IR::collectVars(Term* t, std::vector<std::pair<Term*, std::unique_ptr<Term>>>& variables)
+{
+	if (t->label.find("var") != std::string::npos)
+	{
+		return;
+	}
+	if (t->children.empty())
+	{
+		//auto s = getSymbol(t->label);
+		return;
+	}
+	for (auto ch : t->children)
+	{
+		collectVars(ch, variables);
+	}
+	if (t->parents.size() > 1)
+	{
+		auto var = std::make_unique<Term>();
+		var->label = "var" + std::to_string(variables.size());
+		var->parents = std::move(t->parents);
+		var->e_rep = var.get();
+		t->parents.clear();
+		for (auto& par : var->parents)
+		{
+			for (int i = 0; i < par->children.size(); ++i)
+			{
+				if (helpers::find(par->children[i]) == helpers::find(t))
+				{
+					par->children[i] = var.get();
+				}
+			}
+		}
+		Symbol s;
+		s.type = SymbolType::LocalVar;
+		helpers::printTerm(t, s.val);
+		symbols[var->label] = s;
+		variables.push_back({ t, std::move(var) });
 	}
 }
 
