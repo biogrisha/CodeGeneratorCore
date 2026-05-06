@@ -45,6 +45,7 @@ struct Symbol
 {
     SymbolType type = SymbolType::None;
     std::string val;
+    std::string name;
 };
 
 struct Identity

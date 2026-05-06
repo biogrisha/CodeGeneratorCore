@@ -1,12 +1,19 @@
 #include "IR.h"
 #include "Helpers.h"
+#include <iostream>
 
-void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
+bool IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 {
+	if (checkLoops(blocks))
+	{
+		std::cerr << "Algebraic loop detected, generation failed";
+		return false;
+	}
 	std::vector<Block*> outports;
+
 	for (auto& bl : blocks)
 	{
-		if (bl.second->outdeps.empty())
+		if (bl.second->outdeps.empty() && bl.second->type == "UnitDelayOut" || bl.second->type == "Outport")
 		{
 			outports.push_back(bl.second.get());
 		}
@@ -18,7 +25,7 @@ void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 	{
 		if (outports[i]->type == "UnitDelayOut")
 		{
-			unfoldDelay(outports[i]);
+			unfoldDelayOut(outports[i]);
 		}
 		else if (outports[i]->type == "Outport")
 		{
@@ -29,7 +36,7 @@ void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 	auto last = outports.back();
 	if (last->type == "UnitDelayOut")
 	{
-		unfoldDelay(last);
+		unfoldDelayOut(last);
 	}
 	else if (last->type == "Outport")
 	{
@@ -41,6 +48,7 @@ void IR::init(const std::map<std::string, std::unique_ptr<Block>>& blocks)
 	main_t = pr.getResult();
 	compact(main_t, 0, egraph);
 	collectVars(main_t, local_variables);
+	return true;
 }
 
 Symbol* IR::getSymbol(const std::string& name)
@@ -51,6 +59,58 @@ Symbol* IR::getSymbol(const std::string& name)
 		return nullptr;
 	}
 	return &found->second;
+}
+
+void IR::setStructName(const std::string& name)
+{
+	struct_name = name;
+}
+
+bool IR::checkLoops(const std::map<std::string, std::unique_ptr<Block>>& blocks)
+{
+	std::map<Block*, int> block_rels;
+	std::vector<Block*> no_rels;
+	for (auto& bl : blocks)
+	{
+		block_rels.emplace(bl.second.get(), bl.second->outdeps.size());
+		if (bl.second->outdeps.empty())
+		{
+			no_rels.push_back(bl.second.get());
+		}
+	}
+
+	while (!no_rels.empty())
+	{
+		for (int i = no_rels.size() - 1; i >= 0; --i)
+		{
+			Block* bl = no_rels[i];
+			std::swap(no_rels[i], no_rels.back());
+			no_rels.pop_back();
+			bool has_refs = false;
+			for (auto ch : bl->indeps)
+			{
+				auto found_ch = block_rels.find(ch.second.block);
+				if (found_ch != block_rels.end())
+				{
+					found_ch->second--;
+					if (found_ch->second == 0)
+					{
+						no_rels.push_back(found_ch->first);
+					}
+					else
+					{
+						has_refs = true;
+					}
+				}
+			}
+			if (no_rels.empty() && has_refs)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void IR::parse(Block* block)
@@ -66,6 +126,10 @@ void IR::parse(Block* block)
 	else if (block->type == "Inport")
 	{
 		unfoldInport(block);
+	}
+	else if (block->type == "UnitDelayIn")
+	{
+		unfoldDelayIn(block);
 	}
 	else
 	{
@@ -125,9 +189,10 @@ void IR::unfoldSum(Block* block, int i)
 
 }
 
-void IR::unfoldDelay(Block* block)
+void IR::unfoldDelayOut(Block* block)
 {
-	ir += "set(" + block->name + ',';
+	std::string full_name = struct_name + '.' + block->name;
+	ir += "set(" + full_name + ',';
 	for (auto& dep : block->indeps)
 	{
 		parse(dep.second.block);
@@ -138,12 +203,24 @@ void IR::unfoldDelay(Block* block)
 	Symbol s;
 	s.type = SymbolType::Delay;
 	s.val = meta.front();
-	symbols[block->name] = s;
+	s.name = block->name;
+	symbols[full_name] = s;
+}
+
+void IR::unfoldDelayIn(Block* block)
+{
+	std::string full_name = struct_name + '.' + block->name;
+	ir += full_name;
+	Symbol s;
+	s.type = SymbolType::Delay;
+	s.name = block->name;
+	symbols[full_name] = s;
 }
 
 void IR::unfoldOutport(Block* block)
 {
-	ir += "set(" + block->name + ',';
+	std::string full_name = struct_name + '.' + block->name;
+	ir += "set(" + full_name + ',';
 	for (auto& dep : block->indeps)
 	{
 		parse(dep.second.block);
@@ -151,15 +228,18 @@ void IR::unfoldOutport(Block* block)
 	ir += ')';
 	Symbol s;
 	s.type = SymbolType::Outport;
-	symbols[block->name] = s;
+	s.name = block->name;
+	symbols[full_name] = s;
 }
 
 void IR::unfoldInport(Block* block)
 {
-	ir += block->name;
+	std::string full_name = struct_name + '.' + block->name;
+	ir += full_name;
 	Symbol s;
 	s.type = SymbolType::Inport;
-	symbols[block->name] = s;
+	s.name = block->name;
+	symbols[full_name] = s;
 }
 
 void IR::deleteRecursive(Term* term)

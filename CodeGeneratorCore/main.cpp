@@ -5,10 +5,14 @@
 int main()
 {
     Parser pr;
-    auto res = pr.parse("C:/Users/biogr/OneDrive/Документы/MATLAB/untitled1.xml");
+    auto res = pr.parse("C:/Users/biogr/OneDrive/Документы/MATLAB/test.xml");
 
     IR ir;
-    ir.init(*res);
+    ir.setStructName("nwocg");
+    if (!ir.init(*res))
+    {
+        return 0;
+    }
 
     CodeGenerator cg;
     cg.generate(ir);

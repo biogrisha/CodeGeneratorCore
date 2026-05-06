@@ -8,4 +8,5 @@ class CodeGenerator
 {
 public:
 	void generate(IR& ir);
+	void generateHeader(std::ofstream& out);
 };
