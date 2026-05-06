@@ -15,4 +15,5 @@ private:
     static void parseGain(rapidxml::xml_node<>* node, Block* block);
     static void parseUnitDelay(rapidxml::xml_node<>* node, Block* block);
     static void splitDelays(std::map<std::string, std::unique_ptr<Block>>& blocks);
+    static bool parseDstBranch(rapidxml::xml_node<>* node, std::vector<Dep>& dsts, const std::map<std::string, std::unique_ptr<Block>>& blocks);
 };

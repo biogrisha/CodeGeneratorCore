@@ -231,10 +231,6 @@ void IR::unfoldDelayIn(Block* block)
 {
 	std::string full_name = struct_name + '.' + block->name;
 	ir += full_name;
-	Symbol s;
-	s.type = SymbolType::Delay;
-	s.name = block->name;
-	symbols[full_name] = s;
 }
 
 void IR::unfoldOutport(Block* block)

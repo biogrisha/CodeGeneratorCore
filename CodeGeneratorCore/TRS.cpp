@@ -70,9 +70,9 @@ void TRSOptimizer::optimize()
             TRSHelpers::setupOrder(id.t_rhs);
         }
     }
-    saturate(sat_identities, 2);
-    reduce(red_identities);
-    minimize();
+    //saturate(sat_identities, 2);
+    //reduce(red_identities);
+    //minimize();
 }
 
 void TRSOptimizer::saturate(const std::vector<Identity>& ids, int iterations)

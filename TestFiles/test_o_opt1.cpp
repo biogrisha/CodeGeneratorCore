@@ -6,8 +6,8 @@ double neg(double a){ return -a; }
 
 struct {
     double command;
-    double feedback;
     double setpoint;
+    double feedback;
     double UnitDelay1;
 } nwocg; 
 void nwocg_generated_init()
@@ -16,9 +16,9 @@ void nwocg_generated_init()
 }
 void nwocg_generated_step()
 {
-    double var0 = add(neg(nwocg.feedback),nwocg.setpoint);
-    double var1 = add(nwocg.UnitDelay1,mul(0.01,mul(var0,2)));
-    double commandtmp = add(var1,mul(3,var0));
+    double var0 = add(nwocg.setpoint,neg(nwocg.feedback));
+    double var1 = add(mul(mul(var0,2),0.01),nwocg.UnitDelay1);
+    double commandtmp = add(mul(var0,3),var1);
     double UnitDelay1tmp = var1;
     nwocg.command = commandtmp;
     nwocg.UnitDelay1 = UnitDelay1tmp;
@@ -27,8 +27,8 @@ static const nwocg_ExtPort
     ext_ports[] =
     {
         {"command",&nwocg.command,0},
-        {"feedback",&nwocg.feedback,1},
         {"setpoint",&nwocg.setpoint,1},
+        {"feedback",&nwocg.feedback,1},
         { 0, 0, 0 },
     };
 

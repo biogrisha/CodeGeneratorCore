@@ -78,60 +78,13 @@ std::optional<std::map<std::string, std::unique_ptr<Block>>> Parser::parse(const
                         src.port = src_port;
                     }
                 }
-                if (get_attr(p_node, "Name") == "Dst")
-                {
-                    int dst_sid = -1;
-                    int dst_port = -1;
-                    auto [p, e] = std::from_chars(p_node->value(), p_node->value() + p_node->value_size(), dst_sid);
-
-                    if (e != std::errc())
-                        return {};
-                    constexpr int offset = std::string_view("#in:").size();
-                    auto [p1, e1] = std::from_chars(p + offset, p_node->value() + p_node->value_size(), dst_port);
-
-                    if (e1 != std::errc())
-                        return {};
-
-                    auto block = blocks.find(std::to_string(dst_sid));
-                    if (block != blocks.end())
-                    {
-                        auto& dst = dsts.emplace_back();
-                        dst.block = block->second.get();
-                        dst.port = dst_port;
-                    }
-                }
             }
-            if (dsts.empty())
+            if (!parseDstBranch(line_node, dsts, blocks))
             {
-                for (rapidxml::xml_node<>* br_node = line_node->first_node("Branch"); br_node; br_node = br_node->next_sibling("Branch"))
-                {
-                    for (rapidxml::xml_node<>* p_node = br_node->first_node("P"); p_node; p_node = p_node->next_sibling("P"))
-                    {
-                        if (get_attr(p_node, "Name") == "Dst")
-                        {
-                            int dst_sid = -1;
-                            int dst_port = -1;
-                            auto [p, e] = std::from_chars(p_node->value(), p_node->value() + p_node->value_size(), dst_sid);
-
-                            if (e != std::errc())
-                                return {};
-                            constexpr int offset = std::string_view("#in:").size();
-                            auto [p1, e1] = std::from_chars(p + offset, p_node->value() + p_node->value_size(), dst_port);
-
-                            if (e1 != std::errc())
-                                return {};
-
-                            auto block = blocks.find(std::to_string(dst_sid));
-                            if (block != blocks.end())
-                            {
-                                auto& dst = dsts.emplace_back();
-                                dst.block = block->second.get();
-                                dst.port = dst_port;
-                            }
-                        }
-                    }
-                }
+                std::cerr << "failed parsing lines";
+                return {};
             }
+            
             for (auto& dst : dsts)
             {
                 dst.block->indeps.emplace(dst.port, Dep{ src.block, src.port });
@@ -259,4 +212,47 @@ void Parser::splitDelays(std::map<std::string, std::unique_ptr<Block>>& blocks)
         auto str = bl->sid;
         blocks.emplace(str, std::move(bl));
     }
+}
+
+bool Parser::parseDstBranch(rapidxml::xml_node<>* node, std::vector<Dep>& dsts, const std::map<std::string, std::unique_ptr<Block>>& blocks)
+{
+    for (rapidxml::xml_node<>* p_node = node->first_node("P"); p_node; p_node = p_node->next_sibling("P"))
+    {
+        if (get_attr(p_node, "Name") == "Dst")
+        {
+            int dst_sid = -1;
+            int dst_port = -1;
+            auto [p, e] = std::from_chars(p_node->value(), p_node->value() + p_node->value_size(), dst_sid);
+
+            if (e != std::errc())
+            {
+                return false;
+            }
+
+            constexpr int offset = std::string_view("#in:").size();
+            auto [p1, e1] = std::from_chars(p + offset, p_node->value() + p_node->value_size(), dst_port);
+
+            if (e1 != std::errc())
+            {
+                return false;
+            }
+
+            auto block = blocks.find(std::to_string(dst_sid));
+            if (block != blocks.end())
+            {
+                auto& dst = dsts.emplace_back();
+                dst.block = block->second.get();
+                dst.port = dst_port;
+            }
+            return true;
+        }
+    }
+    for (rapidxml::xml_node<>* br_node = node->first_node("Branch"); br_node; br_node = br_node->next_sibling("Branch"))
+    {
+        if (!parseDstBranch(br_node, dsts, blocks))
+        {
+            return false;
+        }
+    }
+    return true;
 }
