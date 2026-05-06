@@ -55,3 +55,9 @@ struct Identity
     Term* t_lhs = nullptr;
     Term* t_rhs = nullptr;
 };
+
+struct Arg
+{
+    Term* term = nullptr;
+    int node_id = 0;
+};

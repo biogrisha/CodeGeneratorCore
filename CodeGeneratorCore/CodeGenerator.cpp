@@ -72,7 +72,7 @@ void CodeGenerator::generate(IR& ir)
         Symbol* s = ir.getSymbol(ch->children[0]->label);
         if (s)
         {
-            helpers::printTerm(ch->children[1], value);
+            TRSHelpers::printTerm(ch->children[1], value);
 
             out << "    double " << s->name << "tmp = " << value << ";\n";
         }

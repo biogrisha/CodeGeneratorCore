@@ -1,56 +1,79 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
+#include <map>
+#include "Structs.h"
+#include "TermParser.h"
 
 namespace helpers
 {
-    inline std::vector<std::string> split(const std::string& s)
+    std::vector<std::string> split(const std::string& s);
+
+    std::string removeWhitespace(std::string s);
+}
+
+namespace TRSHelpers
+{
+    void makeChild(Term* t);
+
+    void leafsCount(Term* t, int& num);
+
+    void printTerm(Term* pat, std::string& res);
+
+    void deleteRecursive(Term* term);
+
+    void compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge = true);
+
+    Term* find(Term* t);
+
+    void unionTerms(Term* t1, Term* t2);
+
+    bool cong(Term* t1, Term* t2);
+
+    void merge(Term* t1, Term* t2);
+
+    void markPatternNodes(Term* t);
+
+    void setupOrder(Term* t);
+
+    void reduce(Term* a, Term* b);
+
+    class Matcher
     {
-        std::vector<std::string> result;
-
-        size_t start = 0;
-        size_t pos;
-
-        while ((pos = s.find(',', start)) != std::string::npos)
+        struct BStackEl
         {
-            result.emplace_back(s.substr(start, pos - start));
-            start = pos + 1;
-        }
+            int parent_i = -1;
+            int child_i = 0;
+            int eq_i = -1;
+            Term* lhs = nullptr;
+            Term* rhs = nullptr;
+            Term* rhs_main = nullptr;
 
-        result.emplace_back(s.substr(start)); // last part
+            void nextRhs();
+            bool updateEq();
+            bool getChild(Term*& out_lhs, Term*& out_rhs);
+        };
+    public:
 
-        return result;
-    }
+        bool match(Term* lhs, Term* rhs);
 
-    inline Term* find(Term* t)
-    {
-        while (t->e_rep != t)
-        {
-            t = t->e_rep;
-        }
-        return t;
-    }
+        // false means we finished comparisson
+        bool next();
 
-    inline void printTerm(Term* pat, std::string& res)
-    {
-        res += pat->label;
-        if (!pat->children.empty())
-        {
-            res += '(';
-            for (auto& ch : pat->children)
-            {
-                printTerm(ch, res);
-                res += ',';
-            }
-            res.back() = ')';
-        }
-    }
+        bool back();
 
-    inline std::string removeWhitespace(std::string s)
-    {
-        s.erase(std::remove_if(s.begin(), s.end(),
-            [](unsigned char c) { return std::isspace(c); }),
-            s.end());
-        return s;
-    }
+        bool in();
+
+        std::vector<BStackEl> bstack;
+        std::map<Term*, Arg> args;
+    };
+
+
+    void rewrite(Term* pat, std::map<Term*, Arg>& args, std::string& res);
+
+    Term* instantiate(Term* pat, std::map<Term*, Arg>& args, std::map<std::string, std::unique_ptr<Term>>& terms_map);
+
+    void updateCongruence(Term* t);
+
 }
