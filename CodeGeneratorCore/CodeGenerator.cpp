@@ -5,12 +5,12 @@
 
 void CodeGenerator::generate(IR& ir)
 {
-    const std::string filename = "generated.cpp"; // <-- you can change this
+    const std::string filename = m_file_path; // <-- you can change this
 
     std::ofstream out(filename);
     if (!out)
     {
-        std::cerr << "Failed to open file: " << filename << "\n";
+        std::cerr << "Failed to open out file: " << filename << "\n";
         return;
     }
     
@@ -97,7 +97,7 @@ void CodeGenerator::generate(IR& ir)
         Symbol* s = ir.getSymbol(port->label);
         if (s)
         {
-            out << "        {\"" + s->name << "\"," << port->label << "," << (s->type == SymbolType::Inport ? "1" : "0") << "},\n";
+            out << "        {\"" + s->name << "\",&" << port->label << "," << (s->type == SymbolType::Inport ? "1" : "0") << "},\n";
         }
     }
     out << "        { 0, 0, 0 },\n";
@@ -113,12 +113,18 @@ const size_t
     out.close(); // optional, will close automatically
 }
 
+void CodeGenerator::setOutFile(const std::string& file_path)
+{
+    m_file_path = file_path;
+}
+
 void CodeGenerator::generateHeader(std::ofstream& out)
 {
     out << R"(
-double add(double a, double b){ return a + b};
-double mul(double a, double b){ return a * b};
-double neg(double a){ return -a};
+struct nwocg_ExtPort { const char* name; double* val = nullptr; bool in_port;};
+double add(double a, double b){ return a + b; }
+double mul(double a, double b){ return a * b; }
+double neg(double a){ return -a; }
 
 )";
 }

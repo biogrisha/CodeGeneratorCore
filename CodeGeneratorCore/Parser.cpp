@@ -13,7 +13,7 @@ std::optional<std::map<std::string, std::unique_ptr<Block>>> Parser::parse(const
     std::ifstream file(file_path);
     if (!file)
     {
-        std::cerr << "Failed to open file\n";
+        std::cerr << "Failed to open in file\n";
         return {};
     }
 

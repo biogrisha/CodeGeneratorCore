@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<System>
+  <P Name="Location">[0, -8, 1920, 1032]</P>
+  <P Name="Open">on</P>
+  <P Name="ZoomFactor">150</P>
+  <P Name="ReportName">simulink-default.rpt</P>
+  <P Name="SIDHighWatermark">34</P>
+  <Block BlockType="Inport" Name="In1" SID="27">
+    <P Name="Position">[130, 163, 160, 177]</P>
+    <P Name="ZOrder">305</P>
+  </Block>
+  <Block BlockType="Inport" Name="In2" SID="28">
+    <P Name="Position">[130, 228, 160, 242]</P>
+    <P Name="ZOrder">306</P>
+    <P Name="Port">2</P>
+  </Block>
+  <Block BlockType="Sum" Name="Add" SID="26">
+    <PortCounts in="3" out="1"/>
+    <P Name="Position">[285, 214, 315, 246]</P>
+    <P Name="ZOrder">304</P>
+    <P Name="IconShape">rectangular</P>
+    <P Name="Inputs">++-</P>
+  </Block>
+  <Block BlockType="Sum" Name="Add1" SID="32">
+    <PortCounts in="3" out="1"/>
+    <P Name="Position">[260, 274, 290, 306]</P>
+    <P Name="ZOrder">310</P>
+    <P Name="IconShape">rectangular</P>
+    <P Name="Inputs">++-</P>
+  </Block>
+  <Block BlockType="Gain" Name="Gain" SID="34">
+    <P Name="Position">[435, 280, 465, 310]</P>
+    <P Name="ZOrder">312</P>
+  </Block>
+  <Block BlockType="Gain" Name="Multiply" SID="33">
+    <P Name="Position">[180, 285, 210, 315]</P>
+    <P Name="ZOrder">311</P>
+  </Block>
+  <Block BlockType="UnitDelay" Name="Unit Delay" SID="31">
+    <P Name="Position">[385, 383, 420, 417]</P>
+    <P Name="ZOrder">309</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="Outport" Name="Out1" SID="29">
+    <P Name="Position">[510, 193, 540, 207]</P>
+    <P Name="ZOrder">307</P>
+  </Block>
+  <Line>
+    <P Name="ZOrder">54</P>
+    <P Name="Src">27#out:1</P>
+    <P Name="Points">[53, 0; 0, 50]</P>
+    <P Name="Dst">26#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">55</P>
+    <P Name="Src">28#out:1</P>
+    <P Name="Points">[19, 0]</P>
+    <Branch>
+      <P Name="ZOrder">64</P>
+      <P Name="Points">[0, 29; -28, 0; 0, 36]</P>
+      <P Name="Dst">33#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">63</P>
+      <P Name="Points">[39, 0]</P>
+      <Branch>
+        <P Name="ZOrder">62</P>
+        <P Name="Points">[0, 45]</P>
+        <P Name="Dst">32#in:1</P>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">61</P>
+        <P Name="Points">[0, -5]</P>
+        <P Name="Dst">26#in:2</P>
+      </Branch>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">56</P>
+    <P Name="Src">26#out:1</P>
+    <P Name="Points">[88, 0]</P>
+    <Branch>
+      <P Name="ZOrder">68</P>
+      <P Name="Points">[0, -30]</P>
+      <P Name="Dst">29#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">67</P>
+      <P Name="Points">[0, 65]</P>
+      <P Name="Dst">34#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">59</P>
+    <P Name="Src">32#out:1</P>
+    <P Name="Points">[19, 0; 0, -30; -53, 0; 0, -20]</P>
+    <P Name="Dst">26#in:3</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">65</P>
+    <P Name="Src">33#out:1</P>
+    <P Name="Points">[13, 0; 0, -10]</P>
+    <P Name="Dst">32#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">76</P>
+    <P Name="Src">34#out:1</P>
+    <P Name="Points">[19, 0; 0, 105]</P>
+    <P Name="Dst">31#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">77</P>
+    <P Name="Src">31#out:1</P>
+    <P Name="Points">[-135, 0]</P>
+    <P Name="Dst">32#in:3</P>
+  </Line>
+</System>
