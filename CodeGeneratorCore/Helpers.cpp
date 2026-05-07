@@ -232,58 +232,6 @@ namespace TRSHelpers
         }
     }
 
-    void reduce(Term* t1, Term* t2)
-    {
-        Term* main_t = t2;
-        Term* main_top = find(t2);
-        Term* sub_t = find(t1);
-
-        if (main_t != main_top)
-        {
-            //replace in parendts
-            for (auto par : main_top->parents)
-            {
-                for (int i = 0; i < par->children.size(); ++i)
-                {
-                    if (find(par->children[i]) == main_top)
-                    {
-                        par->children[i] = main_t;
-                    }
-                }
-            }
-            //we can move parents since if main_t has top then it does not have parents
-            main_t->parents = std::move(main_top->parents);
-            main_top->parents.clear();
-            main_top->e_reps.clear();
-            main_top->e_rep = main_t;
-        }
-        if (sub_t == main_top)
-        {
-            return;
-        }
-
-        //replace in parendts
-        for (auto par : sub_t->parents)
-        {
-            for (int i = 0; i < par->children.size(); ++i)
-            {
-                if (find(par->children[i]) == sub_t)
-                {
-                    par->children[i] = main_t;
-                }
-            }
-        }
-
-        for (auto par : sub_t->parents)
-        {
-            main_t->parents.insert(par);
-        }
-        sub_t->parents.clear();
-        sub_t->e_reps.clear();
-        sub_t->e_rep = main_t;
-        main_t->e_rep = main_t;
-    }
-
     void rewrite(Term* pat, std::map<Term*, Arg>& args, std::string& res)
     {
         if (pat->label[0] == '`')

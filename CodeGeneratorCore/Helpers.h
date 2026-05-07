@@ -37,8 +37,6 @@ namespace TRSHelpers
 
     void setupOrder(Term* t);
 
-    void reduce(Term* a, Term* b);
-
     class Matcher
     {
         struct BStackEl

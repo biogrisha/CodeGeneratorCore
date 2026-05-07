@@ -5,7 +5,7 @@
 
 void CodeGenerator::generate(IR& ir)
 {
-    const std::string filename = m_file_path; // <-- you can change this
+    const std::string filename = m_file_path;
 
     std::ofstream out(filename);
     if (!out)
