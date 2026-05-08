@@ -83,6 +83,15 @@ namespace TRSHelpers
         delete term;
     }
 
+    Term* find(Term* t)
+    {
+        while (t->e_rep != t)
+        {
+            t = t->e_rep;
+        }
+        return t;
+    }
+
     void compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge)
     {
         auto found_term = terms_map.find(term->term_str);
@@ -103,7 +112,7 @@ namespace TRSHelpers
             //->delete this term recursively
             if (!term->parents.empty())
             {
-                found_term->second->parents.insert(*term->parents.begin());
+                find(found_term->second.get())->parents.insert(*term->parents.begin());
                 (*term->parents.begin())->children[term_id] = found_term->second.get();
             }
 
@@ -116,15 +125,6 @@ namespace TRSHelpers
             compact(ch, i, terms_map, before_merge);
             ++i;
         }
-    }
-
-    Term* find(Term* t)
-    {
-        while (t->e_rep != t)
-        {
-            t = t->e_rep;
-        }
-        return t;
     }
 
     void unionTerms(Term* t1, Term* t2)

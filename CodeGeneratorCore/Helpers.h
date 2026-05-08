@@ -23,9 +23,9 @@ namespace TRSHelpers
 
     void deleteRecursive(Term* term);
 
-    void compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge = true);
-
     Term* find(Term* t);
+
+    void compact(Term* term, int term_id, std::map<std::string, std::unique_ptr<Term>>& terms_map, bool before_merge = true);
 
     void unionTerms(Term* t1, Term* t2);
 
